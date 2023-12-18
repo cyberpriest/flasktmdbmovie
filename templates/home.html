@@ -1,0 +1,372 @@
+
+
+{% extends 'index.html' %}
+
+
+{% block content %}
+{% include 'header.html' %}
+
+<style type="text/css">
+  .jumbotron {
+    background: #eae2b7;
+
+    background-image: url('/static/mv.jpg');
+    background-position: center;
+    background-repeat: no-repeat;
+/*    background-attachment: all;*/
+    background-size: cover;  /* Ensure the background image covers the entire container */
+}
+.star-rating {
+    display: inline-block;
+    font-size: 1.5rem; /* Adjust the font size of the stars */
+}
+
+.star-rating::before {
+    content: '\2605'; /* Unicode character for a solid star */
+    color: gold; /* Color of the filled star */
+}
+
+.star-rating[data-rating]::before {
+    content: '\2605'; /* Filled star */
+    color: gold;
+    width: calc(1.5rem * var(--rating, 0)); /* Adjust the width based on rating */
+    overflow: hidden;
+}
+#search{
+
+  border: 1px solid #fff !important;
+  border-radius:10% !important;
+
+
+}
+#showMoreBtn{
+
+  background: red !important;
+  color:white !important;
+  border:  1px solid red !important;
+   border-radius:10% !important;
+
+}
+
+</style>
+
+<main role="main">
+
+  <section class="jumbotron text-center ">
+        <div class="container">
+          <h1 class="jumbotron-heading  display-5 " style="padding:1px 1px !important;"><span class="white-text">Vid</span>|<span class="red-text">info</span></h1>
+          <p class="lead text-muted">
+          	<div class="form-outline">
+             <input type="text"  class="form-control form-control-lg  " id="search" placeholder="search..." >
+              </div>
+          	<!-- Something short and leading about the collection below—its contents, the creator, etc. Make it short and sweet, but not too short fso folks don't simply skip over it entirely.
+ -->
+          </p>
+          
+           <!--  <a href="#" class="btn btn-primary btn-sm my-2">follow<i class="fa fa-twitter"></i></a> -->
+            <!-- <a href="#" class="btn btn-secondary my-2">Secondary action</a> -->
+          </p>
+        </div>
+      </section>
+
+      <div class="album py-5 bg-dark " >
+        <div class="container">
+          <h4 id="categoryLabel" class=" text-white mt-2 mb-3" style="font-weight:bold;font-family: sans-serif;font-size: 2.5rem;"> </h4>
+
+          <div class="row" id="searchList"></div>
+
+
+
+          <div id="showMoreContainer" class="text-center showMoreContainer mt-3">
+    <button id="showMoreBtn" class="btn   text-white btn-sm">Show More</button>
+
+</div>
+
+        </div>
+      </div>
+
+    </main>
+
+<footer class="" style="background: #003049;color: white;">
+      <div class="container">
+        <p class="float-right">
+          <a href="#" class="text-white">Back to top</a>
+        </p>
+        <p class="text-white"> &copy;<span id='date'></span> vid-info</p>
+      </div>
+    </footer>
+
+
+
+<script type="text/javascript">
+  var dates = new Date()
+
+  $('#date').text(dates.getFullYear())
+
+  var current_page = 1
+  $(document).ready(function(){
+    MovieListajax();
+
+
+        $('#search').on('input', function () {
+        var s = $(this).val().trim();
+
+        s === '' ? MovieListajax():searchMovies(s);
+            }); //search func
+
+        $('#showMoreBtn').on('click',function(){
+          current_page++
+          window.scrollTo(0, 0);
+          MovieListajax(current_page)
+
+
+
+        })
+
+
+
+  }); // ready()
+
+
+
+
+
+
+$(document).on('click','.movie-id',function(event){
+  event.preventDefault()
+  var id  = $(this).data('movie-ids')
+  window.location.href = `/movie/details/${id}`;
+
+
+  // $.ajax({
+  //   url:`/movie/details/${id}`,
+  //   dataType:'json',
+  //   method:'GET',
+  //   success:function(data){
+  //     showDetails(data)
+
+  //   },
+  //   error:function(){
+  //     console.error('error details')
+  //   }
+
+
+  // });
+
+
+});
+
+
+
+
+//     function showDetails(movie){
+// // Update the content dynamically (you can use jQuery or plain JavaScript)
+//     $('#movieTitle').text(movie.title);
+//     $('#releaseDate').text('Release Date: ' + movie.release_date);
+//     $('#overview').text('Overview: ' + movie.overview);
+//     // Add more details as needed
+
+//     // Optionally, scroll to the top of the page
+//     window.scrollTo(0, 0);
+
+
+
+// }
+
+
+
+
+
+	
+function searchMovies(s) {
+
+        $.ajax({
+            url: `/search?query=${s}`,
+            method: 'GET',
+            dataType: 'json',
+            data: { q: s },
+            success: function (data) {
+                ListData(data.search);
+                // console.log(data);
+
+                if (data.hasOwnProperty('search')){
+                  $('#categoryLabel').text('search results')
+                }
+            },
+            error: function () {
+                console.error('Error fetching data');
+            }
+        });
+    
+
+}
+
+function ListData(data) {
+    var list = $('#searchList').empty();
+
+    	    data.forEach(function (movie) {
+        var mv = $(`<div class="col-md-2 col-6 movie-id " data-movie-ids=${movie.id}>`);
+        console.log(movie)
+
+    var posterUrl = `https://image.tmdb.org/t/p/w300${movie.poster_path}`;
+var trucateO=movie.overview.length>150?movie.overview.substring(0,150)+'...':movie.overview
+        
+        mv.html(`
+   
+               
+              <div class=" mb-4 box-shadow">
+             
+                <img src="${posterUrl}"  class="img-fluid " alt="${movie.title}" style='border-radius:1.25rem;border:1px solid #fff'>
+               
+                 <h5 class="  mb-1 mt-2 white-text display-5" style='font-family:system-ui;font-weight:bold; font-size:1rem;'>${movie.title}</h5>
+                  
+          
+
+                  
+                  <div class="d-flex justify-content-between align-items-center">
+
+                    <!--<small class="text-muted">${getYearFromDate(movie.release_date)}</small> -->
+                  </div>
+                </div>
+              </div>
+            </div>
+             
+        
+             
+        `
+        );
+
+        list.append(mv);
+    });
+
+
+
+
+}
+
+function getYearFromDate(dateString) {
+    const date = new Date(dateString);
+    return date.getFullYear();
+}
+
+function MovieListajax(page=1){
+
+
+  $.ajax({
+    url:`/movielist?page=${page}`,
+    method:'GET',
+    dataType:'json',
+    success:function(data){
+            // Check if data is an array and has a length property
+
+            if(data.length > 0){
+              $('#showMoreContainer').hide();
+            }else{
+               $('#showMoreContainer').show();
+            }
+
+
+
+
+  if (data.hasOwnProperty('category')) {
+                // Display the category label
+                $('#categoryLabel').text(data.category);
+            }
+
+            // Process and display movie data as needed
+             MovieListData(data.movies);
+ 
+
+
+     
+      // console.log(data)
+      // var c = document.getElementById()
+
+
+
+
+
+    },
+    error:function(data){
+      console.error(data)
+
+    }
+  });
+
+}
+
+function MovieListData(data){
+  console.log(data);
+
+   var list = $('#searchList').empty();
+
+
+          data.forEach(function(movie) {
+        var mv = $(`<div class="col-md-2 col-4  movie-id " data-movie-ids=${movie.id}>`);
+        console.log(movie)
+        // Get the rating from your data (e.g., 4.5)
+const rating = movie.vote_average
+
+
+
+// Set the rating as a CSS variable
+
+
+
+    var posterUrl = `https://image.tmdb.org/t/p/w200${movie.poster_path}`;
+var trucateO=movie.overview.length>150?movie.overview.substring(0,150)+'...':movie.overview
+        
+        mv.html(
+          `
+
+               
+              <div class=" mb-4 box-shadow">
+             
+                <img src="${posterUrl}"  class="img-fluid " alt="${movie.title}" style='border-radius:1.25rem;border:1px solid #fff'>
+               
+                 <h5 class="  mb-1 mt-2 white-text display-5" style='font-family:system-ui;font-weight:bold; font-size:1rem;'>${movie.title}</h5>
+                  
+          
+
+                  
+                  <div class="d-flex justify-content-between align-items-center">
+                  <span class="text-white"><i class=" red-text fa fa-star"></i> rating ${rating}</span>
+                   
+                    <!--<small class="text-muted">${getYearFromDate(movie.release_date)}</small> -->
+                  </div>
+                </div>
+              </div>
+            </div>
+             
+        `
+        );
+
+        list.append(mv);
+      });
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+</script>
+
+
+
+
+
+
+
+
+
+
+{% endblock content %}
